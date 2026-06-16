@@ -13,22 +13,10 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>demo-github-action</name>
     <description>demo-github-action</description>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
     <properties>
         <java.version>17</java.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -55,6 +43,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
+                    <executable>true</executable>
                     <source>17</source>
                     <target>17</target>
                     <annotationProcessorPaths>
