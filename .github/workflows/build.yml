@@ -1,10 +1,12 @@
 #
-# This pipeline is launch on each push to ensure the project compile, test must pass & deploy to Railway
+# CI  : build + tests run on every branch push and on every PR targeting master
+# CD  : deploy to Railway only after a PR is merged into master
+# Best practice: protect master branch in GitHub settings (require PR + passing checks)
 #
-name: master
+name: CI/CD
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "**" ]
   pull_request:
     branches: [ "master" ]
   workflow_dispatch:
