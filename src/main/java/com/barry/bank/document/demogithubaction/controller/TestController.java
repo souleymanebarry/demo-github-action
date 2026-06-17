@@ -11,7 +11,7 @@ public class TestController {
 
     @GetMapping("/api/search")
     public Map<String, String> search() {
-        return Map.of("key1", "Belle formation", "key2", "JAVA 8", "key3", "MongoDB");
+        return Map.of("key1", "Belle formation ingenieur", "key2", "JAVA 8", "key3", "MongoDB");
     }
 
 
