@@ -16,6 +16,12 @@ on:
     branches: [ "master", "develop" ]
   workflow_dispatch:
 
+# Cancel any in-progress run when a new commit is pushed to the same ref,
+# so superseded PR/branch runs don't waste CI minutes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
