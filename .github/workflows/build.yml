@@ -1,14 +1,19 @@
 #
-# CI  : build + tests run on every branch push and on every PR targeting master
-# CD  : deploy to Railway only after a PR is merged into master
-# Best practice: protect master branch in GitHub settings (require PR + passing checks)
+# Git Flow pipeline
+#   CI : build + tests on every PR (feature -> develop, develop -> master)
+#        and on pushes to the long-lived branches (develop, master)
+#   CD : merge into develop  -> deploy to STAGING
+#        merge into master   -> deploy to PRODUCTION
+#
+# Best practice: protect "develop" and "master" in GitHub branch settings
+# (require PR + passing "build" check before merge).
 #
 name: CI/CD
 on:
   push:
-    branches: [ "**" ]
+    branches: [ "master", "develop" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "develop" ]
   workflow_dispatch:
 
 jobs:
@@ -27,17 +32,34 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
-  deploy:
+  deploy-staging:
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: staging
     steps:
       - uses: actions/checkout@v5
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Deploy to Railway
+      - name: Deploy to Railway (staging)
+        run: railway up --detach --service "demo-github-action-staging"
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway (production)
         run: railway up --detach --service "demo-github-action"
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
