@@ -59,7 +59,7 @@ jobs:
         continue-on-error: true
         run: >
           mvn -B
-          org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar
           -Dsonar.qualitygate.wait=true
           --file pom.xml
         env:
