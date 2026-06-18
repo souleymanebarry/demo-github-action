@@ -10,10 +10,13 @@
 #
 name: CI/CD
 on:
+  # Branch analysis only on the long-lived branches (baseline / reference).
   push:
     branches: [ "master", "develop" ]
+  # PR analysis on every PR, on open AND on update (new commits = "synchronize").
+  # This is the gate: the quality gate is computed on the PR's new code before merge.
   pull_request:
-    branches: [ "master", "develop" ]
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 # Cancel any in-progress run when a new commit is pushed to the same ref,
@@ -27,6 +30,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          # Full history so SonarCloud can assign issues to authors / new code.
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -35,8 +41,30 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
-        run: mvn -B package --file pom.xml
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      # Real build/test failures must still fail the pipeline.
+      - name: Build & test
+        run: mvn -B verify --file pom.xml
+
+      # Wait for the SonarCloud quality gate so its PASSED/FAILED result shows up
+      # in the logs and the PR decoration, but DO NOT block the pipeline:
+      # continue-on-error keeps the job green even if the gate is red.
+      - name: SonarCloud analysis (quality gate, non-blocking)
+        continue-on-error: true
+        run: >
+          mvn -B
+          org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.qualitygate.wait=true
+          --file pom.xml
+        env:
+          SONAR_TOKEN: ${{ secrets.DEMO_SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-staging:
     runs-on: ubuntu-latest
